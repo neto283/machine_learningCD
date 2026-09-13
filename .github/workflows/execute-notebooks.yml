@@ -1,0 +1,42 @@
+name: Ejecutar notebooks Checkpoint 7
+
+on:
+  push:
+    paths:
+      - '.github/workflows/execute-notebooks.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  ejecutar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Ejecutar notebooks
+        run: |
+          jupyter nbconvert --to notebook --execute --inplace 1_validacion_modelos.ipynb --ExecutePreprocessor.timeout=600
+          jupyter nbconvert --to notebook --execute --inplace 2_underfitting_y_overfitting.ipynb --ExecutePreprocessor.timeout=600
+
+      - name: Guardar resultados ejecutados
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add 1_validacion_modelos.ipynb 2_underfitting_y_overfitting.ipynb
+          if ! git diff --cached --quiet; then
+            git commit -m "Ejecutar notebooks Checkpoint 7"
+            git push
+          fi
